@@ -13,3 +13,7 @@ yarn hardhat node
 node scripts/sample-script.js
 yarn hardhat help
 ```
+
+Notes for mainnet deploy:
+- Create git repo with: git init -b main
+- 

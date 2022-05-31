@@ -3,6 +3,9 @@
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
+//
+
+require('dotenv').config();
 const hre = require("hardhat");
 
 async function main() {
@@ -14,12 +17,11 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const Greeter = await hre.ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  const provider = ethers.getDefaultProvider();
+  const signer = new ethers.Wallet(process.env.MASANGRI_TESTNET_PRIVATE_KEY, provider);
+  const [one, two] = await ethers.getSigners();
 
-  await greeter.deployed();
-
-  console.log("Greeter deployed to:", greeter.address);
+  console.log(await signer.getAddress(), one.address, two.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
