@@ -1,0 +1,24 @@
+{
+  "name": "erc-1155-matic-testnet",
+  "version": "0.0.1",
+  "description": "ERC 1155 Contract on Mumbai Testnet",
+  "main": "index.js",
+  "repository": "https://github.com/Masangri/erc-1155-matic-testnet.git",
+  "author": "Mas",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-etherscan": "^3.0.4",
+    "@nomiclabs/hardhat-waffle": "^2.0.0",
+    "chai": "^4.2.0",
+    "dotenv": "^16.0.1",
+    "ethereum-waffle": "^3.0.0",
+    "ethers": "^5.0.0",
+    "hardhat": "^2.9.6",
+    "node-fetch": "2"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.6.0"
+  }
+}
