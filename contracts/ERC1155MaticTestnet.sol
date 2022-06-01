@@ -346,12 +346,16 @@ contract ERC1155MaticTestnet is ERC1155, ERC2981, Ownable, NativeMetaTransaction
         emit PermanentURI(tokenURI, tokenId);
     }
 
-    // function setTokenURIBatch(uint256[] tokenIds, string[] memory tokenURIs)
-    //     public
-    //     onlyOwner
-    // {
-    //     // TODO
-    // }
+    function setTokenURIBatch(uint256[] memory tokenIds, string[] memory tokenURIs)
+        public
+        onlyOwner
+    {
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            require(bytes(_uris[tokenIds[i]]).length == 0, "URI can be set once and only once by the owner");
+            _uris[tokenIds[i]] = tokenURIs[i];
+            emit PermanentURI(tokenURIs[i], tokenIds[i]);
+        }
+    }
 
     function supportsInterface(bytes4 interfaceId)
         public

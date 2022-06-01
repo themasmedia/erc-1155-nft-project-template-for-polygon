@@ -18,10 +18,13 @@ async function main() {
 
   // We get the contract to deploy
   const provider = ethers.getDefaultProvider();
-  const signer = new ethers.Wallet(process.env.MASANGRI_TESTNET_PRIVATE_KEY, provider);
+  console.log(provider);
+
+  // const signer = new ethers.Wallet(process.env.MASANGRI_TESTNET_PRIVATE_KEY, provider);
   const [one, two] = await ethers.getSigners();
 
-  console.log(await signer.getAddress(), one.address, two.address);
+  // console.log(await signer.getAddress(), one.address, two.address);
+  console.log(one.address, two.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
