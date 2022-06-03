@@ -1,37 +1,48 @@
 //SPDX-License-Identifier: Unlicense
+
 pragma solidity ^0.8.0;
+
+/// @author: @masangri_art on Twitter
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
-import "hardhat/console.sol";
 
+/**
+ * @dev
+ * ERC1155 implementation for NFT editions with unique token URIs per token ID.
+ */
+contract ERC1155Base is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
 
-contract ERC1155Custom is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
-
-
-    // ERC1155
-    string public name;
-    string public symbol;
-    // mapping(address => mapping(address => bool)) private _operatorApprovals;
+    // URI per token ID
     mapping (uint256 => string) private _uris;
+    // Token name
+    string public name;
+    // Token symbol
+    string public symbol;
 
-    // Events
+    /**
+     * @dev
+     * See {https://opensea.io/blog/announcements/decentralizing-nft-metadata-on-opensea/}.
+     */
     event PermanentURI(string _value, uint256 indexed _id);
 
-
-    constructor() ERC1155("") {
-        /** 
-        Operator addresses for null address are considered approved for all accounts.
-        By default, we add OpenSea 1155 Polygon's proxy address.   
-        */
-        name = "";
-        symbol = "";
-        // _operatorApprovals[address(0)][address(0x207Fa8Df3a17D96Ca7EA4f2893fcdCb78a304101)] = true;
+    /**
+     * @dev
+     * Contract's name and symbol properties set via contructor arguments.
+     * URI set to empty string, as each token ID will have a unique URI.
+     */
+    constructor(string memory _name, string memory _symbol) ERC1155("") {
+        name = _name;
+        symbol = _symbol;
     }
 
+    /**
+     * @dev
+     * Override for shared function across ERC1155 & ERC1155Supply extension.
+     */
     function _beforeTokenTransfer(
         address operator,
         address from,
@@ -46,29 +57,11 @@ contract ERC1155Custom is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
-    // function contractURI()
-    //     public
-    //     pure
-    //     returns (string memory)
-    // {
-    //     return "ipfs://QmQ3vTtJJRx67hpv69emWELX7Z2MqLdzcqrDGGDmDhBZXW";
-    // }
-
-    // function isApprovedForAll(
-    //     address _owner,
-    //     address _operator
-    // )
-    //     public
-    //     override
-    //     view
-    //     returns (bool)
-    // {
-    //     if (_operatorApprovals[address(0)][_operator]) {
-    //         return true;
-    //     }
-    //     return super.isApprovedForAll(_owner, _operator);
-    // }
-
+    /**
+     * @dev
+     * Only contract owner can mint.
+     * Once a supply has been minted for a token ID, additional tokens cannot be minted.
+     */
     function mint(
         address account,
         uint256 id,
@@ -82,6 +75,10 @@ contract ERC1155Custom is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
         _mint(account, id, amount, data);
     }
 
+    /**
+     * @dev
+     * Batch mint. See {mint()} above.
+     */
     function mintBatch(
         address to,
         uint256[] memory ids,
@@ -97,24 +94,30 @@ contract ERC1155Custom is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
         _mintBatch(to, ids, amounts, data);
     }
 
-    // function setApprovalForAll(address operator, bool approved) public virtual override {
-
-    //     if(_operatorApprovals[address(0)][operator] == !approved) {
-    //         require(msg.sender == owner(), "ERC1155: Only contract owner can set override operator:");
-    //     }
-
-    //     super.setApprovalForAll(operator, approved);
-    // }
-
+    /**
+     * @dev
+     * Set URI per token ID.
+     *
+     * Requirements:
+     * Only contract owner can set token URI(s).
+     * Token URI must not already be set.
+     */
     function setTokenURI(uint256 tokenId, string memory tokenURI)
         public
         onlyOwner
     {
-        require(bytes(_uris[tokenId]).length == 0, "ERC1155: URI can be set once and only once by the owner");
+        require(
+            bytes(_uris[tokenId]).length == 0,
+            "ERC1155: URI can be set once and only once by the owner"
+        );
         _uris[tokenId] = tokenURI;
         emit PermanentURI(tokenURI, tokenId);
     }
 
+    /**
+     * @dev
+     * Batch set token URIs. See {setTokenURI()} above.
+     */
     function setTokenURIBatch(uint256[] memory tokenIds, string[] memory tokenURIs)
         public
         onlyOwner
@@ -124,6 +127,11 @@ contract ERC1155Custom is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
         }
     }
 
+    /**
+     * @dev
+     * Override to return token URI per individual token ID.
+     * See {IERC1155MetadataURI}.
+     */
     function uri(
         uint256 tokenId
     )

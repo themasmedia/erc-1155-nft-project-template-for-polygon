@@ -1,49 +1,54 @@
 //SPDX-License-Identifier: Unlicense
+
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/common/ERC2981.sol";
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+/// @author: @masangri_art on Twitter
 
-import "./custom/ERC1155.sol";
-import "./utils/PolygonCommon.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/token/common/ERC2981.sol";
+
+import "./custom/ERC1155Base.sol";
+import "./utils/ContextMixin.sol";
 
 import "hardhat/console.sol";
 
 
-contract ERC1155TestProject is ERC1155Custom, ERC2981, NativeMetaTransaction, ContextMixin {
-
-    // ERC2981 (Royalties)
+/**
+ * @dev
+ * ERC1155 implementation for NFT editions with royalties on Polygon.
+ */
+contract ERC1155TestProject is ERC1155Base, ERC2981, ContextMixin {
+    /** 
+     * @dev
+     * Default RoyaltyInfo struct to use if not set at tokenId level. See {IERC2981}.
+     */
     RoyaltyInfo private _defaultRoyaltyInfo;
 
-    // ERC1155
+    /** 
+     * @dev
+     * Operator addresses to make transactions on behalf of a token's owner. See {IERC1155}.
+     * Operator addresses for address(0) are considered approved for all accounts.
+     */
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
+    /** 
+     * @dev
+     * By default, OpenSea 1155 Polygon's added to _operatorApprovals for all accounts.
+     * See {https://docs.opensea.io/docs/polygon-basic-integration}.
+     */
+    constructor(string memory _name, string memory _symbol, uint96 royaltyFraction) ERC1155Base(_name, _symbol) {
+        // OpenSea 1155 Polygon proxy address
+        _operatorApprovals[address(0)][address(0x207Fa8Df3a17D96Ca7EA4f2893fcdCb78a304101)] = true;
 
-    constructor() {
-        /** 
-        Operator addresses for null address are considered approved for all accounts.
-        By default, we add OpenSea 1155 Polygon's proxy address.   
-        https://docs.opensea.io/docs/polygon-basic-integration for more information.
-        */
-        name = "ERC1155TestProject";
-        symbol = "TEST";
-        _operatorApprovals[address(0)][address(0x207Fa8Df3a17D96Ca7EA4f2893fcdCb78a304101)] = true; // OpenSea 1155 Polygon
+        // Set default royalty info
+        _defaultRoyaltyInfo = RoyaltyInfo(owner(), royaltyFraction);
     }
 
-    // function _beforeTokenTransfer(
-    //     address operator,
-    //     address from,
-    //     address to,
-    //     uint256[] memory ids,
-    //     uint256[] memory amounts,
-    //     bytes memory data
-    // )
-    //     internal
-    //     override(ERC1155, ERC1155Supply)
-    // {
-    //     super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
-    // }
-
+    /** 
+     * @dev
+     * Override _msgSender with Polygon's ContextMixin.
+     * See {https://docs.opensea.io/docs/polygon-basic-integration}.
+     */
     function _msgSender()
         internal
         override
@@ -53,6 +58,11 @@ contract ERC1155TestProject is ERC1155Custom, ERC2981, NativeMetaTransaction, Co
         return ContextMixin.msgSender();
     }
 
+    /** 
+     * @dev
+     * Set storefront-level metadata uri.
+     * See {https://docs.opensea.io/docs/contract-level-metadata}.
+     */
     function contractURI()
         public
         pure
@@ -61,6 +71,20 @@ contract ERC1155TestProject is ERC1155Custom, ERC2981, NativeMetaTransaction, Co
         return "ipfs://QmQ3vTtJJRx67hpv69emWELX7Z2MqLdzcqrDGGDmDhBZXW";
     }
 
+    /** 
+     * @dev
+     * See {IERC1155-setApprovalForAll}.
+     */
+    function feeDenominator() public pure returns (uint96) {
+        return _feeDenominator();
+    }
+
+    /** 
+     * @dev
+     * See {IERC1155-setApprovalForAll}.
+     * An operator approved to the null address is considered approved for all accounts (OpenSea).
+     * See {https://docs.opensea.io/docs/polygon-basic-integration}.
+     */
     function isApprovedForAll(
         address _owner,
         address _operator
@@ -70,49 +94,43 @@ contract ERC1155TestProject is ERC1155Custom, ERC2981, NativeMetaTransaction, Co
         view
         returns (bool)
     {
-        if (_operatorApprovals[address(0)][_operator]) {
+        if (_operatorApprovals[address(0)][_operator] == true) {
             return true;
         }
         return super.isApprovedForAll(_owner, _operator);
     }
 
-    // function mint(
-    //     address account,
-    //     uint256 id,
-    //     uint256 amount,
-    //     bytes memory data
-    // )
-    //     public
-    //     onlyOwner
-    // {
-    //     require(totalSupply(id) == 0, "Token ID already minted");
-    //     _mint(account, id, amount, data);
-    // }
-
-    // function mintBatch(
-    //     address to,
-    //     uint256[] memory ids,
-    //     uint256[] memory amounts,
-    //     bytes memory data
-    // )
-    //     public
-    //     onlyOwner
-    // {
-    //     for (uint256 i = 0; i > ids.length; i++) {
-    //         require(totalSupply(ids[i]) == 0, "Token ID already minted");
-    //     }
-    //     _mintBatch(to, ids, amounts, data);
-    // }
-
-    function setApprovalForAll(address operator, bool approved) public virtual override {
-
+    /** 
+     * @dev
+     * See {IERC1155-setApprovalForAll}.
+     *
+     * Requirements:
+     * Operator addresses for address(0) are considered approved for all accounts.
+     * Operator addresses for address(0) can only be set by the contract owner.
+     */
+    function setApprovalForAll(
+        address operator,
+        bool approved
+    )
+        public
+        virtual
+        override
+    {
         if(_operatorApprovals[address(0)][operator] == !approved) {
-            require(msg.sender == owner(), "Only contract owner can set set override operators for marketplaces");
+            require(
+                msg.sender == owner(),
+                "Only contract owner can set set override operators for marketplaces"
+            );
+            _operatorApprovals[address(0)][operator] = approved;
+        } else {
+            super.setApprovalForAll(operator, approved);
         }
-
-        super.setApprovalForAll(operator, approved);
     }
 
+    /** 
+     * @dev
+     * See {IERC2981}.
+     */
     function setDefaultRoyalty(uint96 feeNumerator)
         public
         onlyOwner
@@ -120,26 +138,10 @@ contract ERC1155TestProject is ERC1155Custom, ERC2981, NativeMetaTransaction, Co
         _setDefaultRoyalty(owner(), feeNumerator);
     }
 
-    // function setTokenURI(uint256 tokenId, string memory tokenURI)
-    //     public
-    //     onlyOwner
-    // {
-    //     require(bytes(_uris[tokenId]).length == 0, "URI can be set once and only once by the owner");
-    //     _uris[tokenId] = tokenURI;
-    //     emit PermanentURI(tokenURI, tokenId);
-    // }
-
-    // function setTokenURIBatch(uint256[] memory tokenIds, string[] memory tokenURIs)
-    //     public
-    //     onlyOwner
-    // {
-    //     for (uint256 i = 0; i < tokenIds.length; i++) {
-    //         require(bytes(_uris[tokenIds[i]]).length == 0, "URI can be set once and only once by the owner");
-    //         _uris[tokenIds[i]] = tokenURIs[i];
-    //         emit PermanentURI(tokenURIs[i], tokenIds[i]);
-    //     }
-    // }
-
+    /** 
+     * @dev
+     * @dev See {IERC165-supportsInterface}.
+     */
     function supportsInterface(bytes4 interfaceId)
         public
         view
@@ -147,19 +149,6 @@ contract ERC1155TestProject is ERC1155Custom, ERC2981, NativeMetaTransaction, Co
         override (ERC1155, ERC2981)
         returns (bool)
     {
-        // return (interfaceId == type(IERC2981).interfaceId || super.supportsInterface(interfaceId));
-        return (ERC1155.supportsInterface(interfaceId) || ERC2981.supportsInterface(interfaceId));
+        return super.supportsInterface(interfaceId);
     }
-
-    // function uri(
-    //     uint256 tokenId
-    // )
-    //     public
-    //     view
-    //     override
-    //     returns (string memory)
-    // {
-    //     return _uris[tokenId];
-    // }
-
 }
