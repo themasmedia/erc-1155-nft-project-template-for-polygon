@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-/// @author: @masangri_art on Twitter
+/// @author: masangri.eth
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "./custom/ERC1155Base.sol";
 import "./utils/ContextMixin.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 
 /**
@@ -119,7 +119,7 @@ contract ERC1155TestProject is ERC1155Base, ERC2981, ContextMixin {
         if(_operatorApprovals[address(0)][operator] == !approved) {
             require(
                 msg.sender == owner(),
-                "Only contract owner can set set override operators for marketplaces"
+                "ERC1155TestProject: Only contract owner can set set override operators for marketplaces"
             );
             _operatorApprovals[address(0)][operator] = approved;
         } else {
