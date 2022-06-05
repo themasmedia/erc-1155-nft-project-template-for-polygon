@@ -1,7 +1,6 @@
 {
   "contractURI": "ipfs://QmQ3vTtJJRx67hpv69emWELX7Z2MqLdzcqrDGGDmDhBZXW",
   "metadataKeys": ["attributes", "description", "image", "name"],
-  "owner": "0x5211012d7A90F17690882a56d83BEA14803D6739",
   "tokenData": {
     "0": {
       "supply": 10,

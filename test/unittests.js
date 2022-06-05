@@ -1,5 +1,6 @@
 //
 
+require('dotenv').config();
 const fetch = require('node-fetch');
 const fs = require('fs');
 
@@ -7,9 +8,9 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 
 
-const PROJECT_NAME = 'ERC1155TestProject';
-const PROJECT_SYMBOL = 'TEST';
-const ROYALTY_FRACTION = 0;
+const PROJECT_NAME = process.env.PROJECT_NAME;
+const PROJECT_SYMBOL = process.env.PROJECT_SYMBOL;
+const ROYALTY_FRACTION = process.env.ROYALTY_FRACTION;
 
 const testDataRaw = fs.readFileSync('test/data.json');
 const testData = JSON.parse(testDataRaw);
@@ -33,9 +34,8 @@ describe('ERC-1155 contract deployment', function () {
       /** CONTRACT PROPERTY TESTS*/
       it('The hard-coded values in the contract should match actual addresses and URIs', async function () {
 
-        // Deployment address and contract owner address should match the public key in test data file.
-        expect(owner.address).to.equal(testData.owner);
-        expect(await projectContract.owner()).to.equal(testData.owner);
+        // Deployment address and contract owner address should match.
+        expect(await projectContract.owner()).to.equal(owner.address);
 
         // Contract name and symbol properties should match those set in constructor args.
         expect(await projectContract.name()).to.equal(PROJECT_NAME);
@@ -214,6 +214,40 @@ describe('ERC-1155 contract deployment', function () {
 
         expect(guestBalances.every((x) => x == 1)).to.be.true;
 
+      });
+
+
+      /** CONTRACT PAUSE TESTS*/
+      it('The contract owner should be able to pause transactions temporarily, if needed', async function () {
+
+        // Initial paused state should be false.
+        expect(await projectContract.paused()).to.be.false;
+
+        // Pause the contract
+        await expect(projectContract.connect(guest).pause()).to.be.reverted;
+        expect(await projectContract.pause()).to.emit('Paused');;
+
+        // Ensure that transactions are paused for all.
+        await expect(projectContract.connect(guest).safeTransferFrom(
+          guest.address,
+          owner.address,
+          tokenIds[0],
+          1,
+          NULL_ADDRESS
+        )).to.be.reverted;
+
+        await expect(projectContract.safeTransferFrom(
+          owner.address,
+          guest.address,
+          tokenIds[0],
+          1,
+          NULL_ADDRESS
+        )).to.be.reverted;
+
+        // Unpause the contract
+        await expect(projectContract.connect(guest).unpause()).to.be.reverted;
+        expect(await projectContract.unpause()).to.emit('Unpaused');;
+        
       });
 
       /** TOKEN BURN TESTS*/
