@@ -1,10 +1,10 @@
 {
-  "name": "erc-1155-matic-testnet",
+  "name": "erc-1155-nft-project-template-for-polygon",
   "version": "0.0.1",
-  "description": "ERC 1155 Contract on Mumbai Testnet",
+  "description": "ERC-1155 NFT Project Template for Polygon",
   "main": "index.js",
-  "repository": "https://github.com/Masangri/erc-1155-matic-testnet.git",
-  "author": "Mas",
+  "repository": "https://github.com/Masangri/erc-1155-nft-project-template-for-polygon.git",
+  "author": "masangri.eth",
   "license": "MIT",
   "private": true,
   "devDependencies": {
