@@ -17,7 +17,9 @@ async function main() {
   const projectContract = await ProjectContract.deploy();
   await projectContract.deployed();
 
-  console.log(await projectContract.interfaceId('IERC165'));
+  // Replace with applicable interface name.
+  let interfaceName = 'IERC165';
+  console.log(await projectContract.interfaceId(interfaceName));
 }
 
 

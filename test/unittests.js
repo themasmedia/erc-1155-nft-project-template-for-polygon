@@ -28,6 +28,8 @@ describe('ERC-1155 contract deployment', function () {
     const ProjectContract = await ethers.getContractFactory(PROJECT_NAME);
     const projectContract = await ProjectContract.deploy(PROJECT_NAME, PROJECT_SYMBOL, ROYALTY_FRACTION);
     await projectContract.deployed();
+
+    console.log(`"${PROJECT_NAME}" contract deployed successfully to ${projectContract.address} on the "${network.name}" network!`);
     
     describe('ERC-1155 contract interactions', function () {
 
@@ -330,13 +332,15 @@ describe('ERC-1155 contract deployment', function () {
       });
 
       /** ROYALTY TESTS*/
-      it('Royalty info should need to be set to the owner', async function () {
+      it(`The initial royalty fraction value should match what was set in the coinstructor (default: 0%).
+      By default, the contract owner should be the receiver of all royalties and have authority to edit the royalty fraction value.`,
+      async function () {
 
         // Check that the initial royalty info (_defaultRoyaltyInfo for all tokenIds) was set correctly.
         let feeDenominator = await projectContract.feeDenominator();
         let royaltyFraction = ROYALTY_FRACTION; // 0 bips = 0%
         let [royaltyReceiver, royaltyAmount] = await projectContract.royaltyInfo(0, 1000000);
-        expect(royaltyReceiver).to.equal(NULL_ADDRESS);
+        expect(royaltyReceiver).to.equal(owner.address);
         expect(ethers.utils.formatEther(royaltyAmount * feeDenominator)).to.equal(ethers.utils.formatEther(royaltyFraction));
 
         // Attempt to set the royalty to an illegally high value.
@@ -347,7 +351,6 @@ describe('ERC-1155 contract deployment', function () {
         royaltyFraction = 500; // 500 bips = 5%
         await projectContract.setDefaultRoyalty(royaltyFraction);
         [royaltyReceiver, royaltyAmount] = await projectContract.royaltyInfo(0, ONE_ETH);
-        expect(royaltyReceiver).to.equal(owner.address);
         expect(ethers.utils.formatEther(royaltyAmount) * feeDenominator).to.equal(royaltyFraction);
 
       });
