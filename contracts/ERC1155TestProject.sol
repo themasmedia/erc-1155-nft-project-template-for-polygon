@@ -18,11 +18,6 @@ import "./utils/ContextMixin.sol";
  * ERC1155 implementation for NFT editions with royalties on Polygon.
  */
 contract ERC1155TestProject is ERC1155Base, ERC2981, ContextMixin {
-    /** 
-     * @dev
-     * Default RoyaltyInfo struct to use if not set at tokenId level. See {IERC2981}.
-     */
-    RoyaltyInfo private _defaultRoyaltyInfo;
 
     /** 
      * @dev
@@ -41,7 +36,7 @@ contract ERC1155TestProject is ERC1155Base, ERC2981, ContextMixin {
         _operatorApprovals[address(0)][address(0x207Fa8Df3a17D96Ca7EA4f2893fcdCb78a304101)] = true;
 
         // Set default royalty info
-        _defaultRoyaltyInfo = RoyaltyInfo(owner(), royaltyFraction);
+        setDefaultRoyalty(royaltyFraction);
     }
 
     /** 

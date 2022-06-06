@@ -109,17 +109,6 @@ contract ERC1155Base is ERC1155, Ownable, ERC1155Burnable, ERC1155Pausable, ERC1
 
     /**
      * @dev
-     * See {ERC1155Pausable}.
-     */
-    function unpause()
-        public
-        onlyOwner
-    {
-         _unpause();
-    }
-
-    /**
-     * @dev
      * Set URI per token ID.
      *
      * Requirements:
@@ -152,6 +141,17 @@ contract ERC1155Base is ERC1155, Ownable, ERC1155Burnable, ERC1155Pausable, ERC1
         for (uint256 i = 0; i < tokenIds.length; i++) {
             setTokenURI(tokenIds[i], tokenURIs[i]);
         }
+    }
+
+    /**
+     * @dev
+     * See {ERC1155Pausable}.
+     */
+    function unpause()
+        public
+        onlyOwner
+    {
+         _unpause();
     }
 
     /**
