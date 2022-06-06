@@ -350,8 +350,15 @@ describe('ERC-1155 contract deployment', function () {
         // Set the default royalty to 5%.
         royaltyFraction = 500; // 500 bips = 5%
         await projectContract.setDefaultRoyalty(royaltyFraction);
-        [royaltyReceiver, royaltyAmount] = await projectContract.royaltyInfo(0, ONE_ETH);
+        [royaltyReceiver, royaltyAmount] = await projectContract.royaltyInfo(tokenIds[0], ONE_ETH);
         expect(ethers.utils.formatEther(royaltyAmount) * feeDenominator).to.equal(royaltyFraction);
+
+        // Set the royalty for a specific token ID (overriding the global default).
+        let newRoyaltyFraction = 1000;
+        await projectContract.setTokenRoyalty(tokenIds[0], guest.address, newRoyaltyFraction);
+        let [newRoyaltyReceiver, newRoyaltyAmount] = await projectContract.royaltyInfo(tokenIds[0], ONE_ETH);
+        expect(newRoyaltyReceiver).to.not.equal(royaltyReceiver);
+        expect(ethers.utils.formatEther(newRoyaltyAmount) * feeDenominator).to.not.equal(royaltyFraction);
 
       });
 

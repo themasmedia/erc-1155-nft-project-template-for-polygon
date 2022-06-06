@@ -133,9 +133,25 @@ contract ERC1155TestProject is ERC1155Base, ERC2981, ContextMixin {
         _setDefaultRoyalty(owner(), feeNumerator);
     }
 
+    /**
+     * @dev
+     * Sets the royalty information for a specific token id, overriding the global default.
+     * See {IERC2981}.
+     */
+    function setTokenRoyalty(
+        uint256 tokenId,
+        address receiver,
+        uint96 feeNumerator
+    )
+        public
+        onlyOwner
+    {
+        _setTokenRoyalty(tokenId, receiver, feeNumerator);
+    }
+
     /** 
      * @dev
-     * @dev See {IERC165-supportsInterface}.
+     * See {IERC165-supportsInterface}.
      */
     function supportsInterface(bytes4 interfaceId)
         public
