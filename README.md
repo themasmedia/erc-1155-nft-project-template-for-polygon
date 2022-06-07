@@ -71,7 +71,7 @@
      (JSON metadata & media content files - see [OpenSea's metadata standards](https://docs.opensea.io/docs/metadata-standards)
      and the many NFT tutorials online for more info).
    - [ ] Optional: Upload a properly formatted JSON file if you are implementing **OpenSea**'s contract-level storefront metadata
-     (see contractURI() in the [Technical Notes](#technical-notes) section).
+     (see contractURI() in the [Technical Notes](#technical-notes) [Contract](#contract) section).
 <br/><br/>
 
 1. ### Edit the following file names and hard-coded values in `contracts/`:
@@ -79,7 +79,7 @@
    - [ ] In the newly renamed `<PROJECT_NAME>.sol` contract, change the following:
      - On lines 20 and 122, replace `ERC1155TestProject` with `<PROJECT_NAME>`
      - If you uploaded contract-level storefront metadata in **Step 6**, edit line 71 to return the URI string to your contract-level metadata
-       (see contractURI() in the [Technical Notes](#technical-notes) section).
+       (see contractURI() in the [Technical Notes](#technical-notes) [Contract](#contract) section).
      - If not, you can comment out or remove the contractURI() function altogether (lines 61-73).
 <br/><br/>
 
@@ -110,7 +110,8 @@
    - [ ] Once verified, interact with your contract on Polygonscan.<br/>
      - In a web browser, go to [Polygonscan](https://mumbai.polygonscan.com) and search for your contract,
        or go directly to `https://mumbai.polygonscan.com/address/<CONTRACT_ADDRESS>`.
-     - Under the Contract tab (which should have a green checkmark), connect Metamask and interact with your contract (mint tokens, edit royalties, etc.).
+     - Under the Contract tab (which should have a green checkmark), connect Metamask and interact with your contract (mint tokens, edit royalties, etc.).<br/>
+       You can also use [**Remix**](https://remix.ethereum.org/) to easily interact with our contract, if your prefer.
    - [ ] Get your collection listed on OpenSea (testnet).
      - In a web browser, go to [OpenSea's Get Listed page](https://testnets.opensea.io/get-listed) and select the ***Live on a testnet*** option,
        select ***Mumbai***, and submit your contract address (it will require that at least one token has been minted on the contract).
@@ -123,23 +124,53 @@
    - [ ] Double-check that all your settings are functioning as required on testnet on Polygonscan and OpenSea before proceeding.<br/>
          Make any necessary updates to environment variables for the mainnet contract, such as private key values.
          
-   - **Method 1**: Deploy using the same method as Step 10, with the following adjustments noted in **bold**.<br/>
+   - **Method 1** - VSCode & Hardhat (easier but arguably less secure):<br/>
+     Deploy using the same method as *Step 10*, except on mainnet instead of testnet.
      - [ ] Deploy the contract using the deploy.js script to the **Polygon** network.
-       - `yarn hardhat run scripts/deploy.js `**`--network polygon`**
+       - `yarn hardhat run scripts/deploy.js `**`--network polygon`**<br/><br/>
+
+   - **Method 2** - VSCode, Hardhat, and Remix IDE/Remixd Plug-In (extra setup and steps, but transactions require approval via secure wallet):<br/>
+     Deploy by connecting Hardhat to the Remix IDE, which features wallet support for contreact deployment.
+     - [ ] Start the Remixd daemon by running `yarn remixd -u https://remix.ethereum.org`.
+     - [ ] Go to [remix.ethereum.org](https://remix.ethereum.org/) and click ***Connect to Localhost***.
+       You should see your directory appear as a workspace in the *FILE EXPLORERS* secion. Select `contracts/<PROJECT_NAME>.sol`.
+     - [ ] In the *SOLIDITY COMPILER* section, check *Enable Hardhat Compilation* and select the Solidity compiler version set in your hardhat.config.js file (0.8.4).<br/>
+       Click the 🔁*Compile* button (the *remix-compiler.config.js* file be created and/or updated).
+     - [ ] *Optional*: To test Hardhat and Remix on with your local HJarhat network:
+       - [ ] In a separate terminal, start a local Hardhat node by running `yarn hardhat node`.
+       - [ ] In the *DEPLOY & RUN TRANSACTIONS* section, set the *ENVIRONMENT* to *Hardhart Provider*,
+         select `<PROJECT_NAME>.sol` under *Contracts*, enter the constructor arguments, and click *Deploy*.
+       - [ ] Once deployed, you can interact with the contract through the UI (toggle accounts under *ACCOUNTS*).
+     - [ ] In the *DEPLOY & RUN TRANSACTIONS* section, set the *ENVIRONMENT* to either:
+       - *Injected Web3* for browser-based wallets like *Metamask*.
+       - *Wallet Connect* for mobile wallets like *Trust*.<br/>
+       ...and connect the account you intend to deploy the contract with.<br/>
+       Select `<PROJECT_NAME>.sol` under *Contracts*, enter the `<PROJECT_NAME>`,  constructor arguments (<PROJECT_NAME>), and click *Deploy*.
+     - [ ] Approve the transaction to deploy the contract in your connected wallet (no environment variable or hardcoded private key necessary 😎).<br/><br/>
+
+   - Once deployed successfully, verify your contract and get it listed on OpenSea just like we did on testnet, but with the following adjustments noted in **bold**.<br/>
      - [ ] Verify the contract on Polygonscan on the **Polygon** mainnet.
        - `yarn hardhat verify --constructor-args arguments.js `**`--network polygon`**` <CONTRACT_ADDRESS>`
      - [ ] Use [Polygonscan](https://polygonscan.com) on mainnet and search for your contract,
-         or go directly to `https://`**`polygonscan.com`**`/address/<CONTRACT_ADDRESS>`.
+       or go directly to `https://`**`polygonscan.com`**`/address/<CONTRACT_ADDRESS>`.
      - [ ] Go to [OpenSea's Get Listed page](https://opensea.io/get-listed) and select the ***Live on a mainnet*** option and select ***Polygon***.
-<br/><br/>
-
-   - **Method 2**: Deploy using VSCode and Remix/Remixd **TODO** 
-<br/><br/>
 
 ## Technical Notes:
+
+### Development:
 - [**Hardhat**](https://hardhat.org/) Ethereum development environment is used for debugging, testing, and deploying contracts.<br/>
-  Run `yarn hardhat help` for more information.
-- [**Chai**](https://www.chaijs.com/) is used for testing.
+  Run `yarn hardhat help` for information on specific ommands.
+- [**Chai**](https://www.chaijs.com/) TDD/BDD library is used for running unittests.
+- [**Visual Studio Code**]() IDE can be used for development locally and deploying contracts.
+- [**Remix IDE**](https://remix.ethereum.org/) browser-based IDE can be used for development online and deploying contracts.
+  - [**Remixd**](https://remix-ide.readthedocs.io/en/latest/remixd.html) plug-in can be used to connect VSCode to the Remix IDE web app
+    (Hardhat will be listening on port 65522).<br/>
+    [Further details on working with Hardhat and Remix together](https://remix-ide.readthedocs.io/en/latest/hardhat.html)
+  - When using Remix IDE, you may need to manually activate the *REMIXD* and/or *WALLET CONNECT* plug-ins manually in the *PLUGINS MANAGER*.
+
+### Network Settings:
+- [Directions for connecting your wallet to Polygon Mainnet and Polygon Mumbai Testnet](https://docs.polygon.technology/docs/develop/metamask/config-polygon-on-metamask/).
+### Contract:
 - `contractURI()` function is used for implementing [**OpenSea**'s contract-level metadata](https://docs.opensea.io/docs/contract-level-metadata ).
 - `PermanentURI()` event is used for [**OpenSea**'s permanent URI recommendation](https://opensea.io/blog/announcements/decentralizing-nft-metadata-on-opensea/}).
 - `isApprovedForAll()` and `setApprovalForAll` are overridden to support [**OpenSea**'s Polygon integration](https://docs.opensea.io/docs/polygon-basic-integration)
