@@ -21,10 +21,17 @@ contract ERC1155TestProject is ERC1155Base, ERC2981, ContextMixin {
 
     /** 
      * @dev
-     * Operator addresses to make transactions on behalf of a token's owner. See {IERC1155}.
-     * Operator addresses for address(0) are considered approved for all accounts.
+     * Operator addresses make transactions on behalf of a token's owner. See {IERC1155}.
+     * We also include a mapping for special addresses that are automatically approved for all users to reduce marketplace friction.
      */
-    mapping(address => mapping(address => bool)) private _operatorApprovals;
+    mapping(address => bool) private _operatorOverrides;
+
+    /** 
+     * @dev
+     * Custom events for changes to the royalties. See {ERC2981}.
+     */
+    event DefaultRoyaltyUpdated(address _receiver, uint96 _feeNumerator);
+    event TokenRoyaltyUpdated(uint256 _id, address _receiver, uint96 _feeNumerator);
 
     /** 
      * @dev
@@ -32,11 +39,11 @@ contract ERC1155TestProject is ERC1155Base, ERC2981, ContextMixin {
      * See {https://docs.opensea.io/docs/polygon-basic-integration}.
      */
     constructor(string memory _name, string memory _symbol, uint96 royaltyFraction) ERC1155Base(_name, _symbol) {
-        // OpenSea 1155 Polygon proxy address
-        _operatorApprovals[address(0)][address(0x207Fa8Df3a17D96Ca7EA4f2893fcdCb78a304101)] = true;
+        // Register OpenSea's 1155 Polygon proxy address in _operatorOverrides
+        _operatorOverrides[address(0x207Fa8Df3a17D96Ca7EA4f2893fcdCb78a304101)] = true;
 
         // Set default royalty info
-        setDefaultRoyalty(royaltyFraction);
+        _setDefaultRoyalty(owner(), royaltyFraction);
     }
 
     /** 
@@ -68,7 +75,7 @@ contract ERC1155TestProject is ERC1155Base, ERC2981, ContextMixin {
 
     /** 
      * @dev
-     * See {IERC1155-setApprovalForAll}.
+     * See {IERC2981}.
      */
     function feeDenominator() public pure returns (uint96) {
         return _feeDenominator();
@@ -76,8 +83,8 @@ contract ERC1155TestProject is ERC1155Base, ERC2981, ContextMixin {
 
     /** 
      * @dev
-     * See {IERC1155-setApprovalForAll}.
-     * An operator approved to the null address is considered approved for all accounts (OpenSea).
+     * See {IERC1155-isApprovedForAll}.
+     * An operator registered in _operatorOverrides considered approved for all accounts (OpenSea).
      * See {https://docs.opensea.io/docs/polygon-basic-integration}.
      */
     function isApprovedForAll(
@@ -89,37 +96,10 @@ contract ERC1155TestProject is ERC1155Base, ERC2981, ContextMixin {
         view
         returns (bool)
     {
-        if (_operatorApprovals[address(0)][_operator] == true) {
+        if (_operatorOverrides[_operator] == true) {
             return true;
         }
         return super.isApprovedForAll(_owner, _operator);
-    }
-
-    /** 
-     * @dev
-     * See {IERC1155-setApprovalForAll}.
-     *
-     * Requirements:
-     * Operator addresses for address(0) are considered approved for all accounts.
-     * Operator addresses for address(0) can only be set by the contract owner.
-     */
-    function setApprovalForAll(
-        address operator,
-        bool approved
-    )
-        public
-        virtual
-        override
-    {
-        if(_operatorApprovals[address(0)][operator] == !approved) {
-            require(
-                msg.sender == owner(),
-                "ERC1155TestProject: Only contract owner can set set override operators for marketplaces"
-            );
-            _operatorApprovals[address(0)][operator] = approved;
-        } else {
-            super.setApprovalForAll(operator, approved);
-        }
     }
 
     /** 
@@ -131,6 +111,25 @@ contract ERC1155TestProject is ERC1155Base, ERC2981, ContextMixin {
         onlyOwner
     {
         _setDefaultRoyalty(owner(), feeNumerator);
+        emit DefaultRoyaltyUpdated(owner(), feeNumerator);
+    }
+
+    /** 
+     * @dev
+     * An operator registered in _operatorOverrides is considered approved for all accounts (in this case, OpenSea).
+     * When any edits occur, the ApprovalForAll event will be emitted with aDDRESS(0) as the first argument ("owner").
+     * See {IERC1155-setApprovalForAll}.
+     * See {https://docs.opensea.io/docs/polygon-basic-integration}.
+     */
+    function setOperatorOverride(
+        address operator,
+        bool approved
+    )
+        public
+        onlyOwner
+    {
+        _operatorOverrides[operator] = approved;
+        emit ApprovalForAll(address(0), operator, approved);
     }
 
     /**
@@ -147,6 +146,7 @@ contract ERC1155TestProject is ERC1155Base, ERC2981, ContextMixin {
         onlyOwner
     {
         _setTokenRoyalty(tokenId, receiver, feeNumerator);
+        emit TokenRoyaltyUpdated(tokenId, receiver, feeNumerator);
     }
 
     /** 

@@ -21,7 +21,7 @@ const ONE_ETH = ethers.BigNumber.from('1000000000000000000');
 
 describe('ERC-1155 contract deployment', function () {
 
-  it('Contract should compile and deploy', async function () {
+  it('1. Contract should compile and deploy', async function () {
 
     const [owner, guest] = await ethers.getSigners();
 
@@ -34,7 +34,7 @@ describe('ERC-1155 contract deployment', function () {
     describe('ERC-1155 contract interactions', function () {
 
       /** CONTRACT PROPERTY TESTS*/
-      it('The hard-coded values in the contract should match actual addresses and URIs', async function () {
+      it('2. The hard-coded and constructor values in the contract should match specified values', async function () {
 
         // Deployment address and contract owner address should match.
         expect(await projectContract.owner()).to.equal(owner.address);
@@ -51,7 +51,7 @@ describe('ERC-1155 contract deployment', function () {
       const tokenURIs = tokenIds.map((x) => testData.tokenData[x].tokenURI);
 
       /** INTERFACE SUPPORT TESTS*/
-      it('The contract should support all inherited interfaces (ERC165, ERC1155, ERC2981)', async function () {
+      it('3. The contract should support all inherited interfaces (ERC165, ERC1155, ERC2981)', async function () {
 
         const interfaceIds = [
           // IERC165
@@ -68,7 +68,7 @@ describe('ERC-1155 contract deployment', function () {
       });
 
       /** MINTING TESTS*/
-      it('Only the contract owner should be able to mint NFTs, once and only once per tokenId', async function () {
+      it('4. Only the contract owner should be able to mint NFTs, once and only once per tokenId', async function () {
 
         // Mint tokenId 0.
         await expect(projectContract.connect(guest).mint(
@@ -78,12 +78,18 @@ describe('ERC-1155 contract deployment', function () {
           NULL_ADDRESS
         )).to.be.reverted;
 
-        expect(await projectContract.mint(
+        await expect(projectContract.mint(
           owner.address,
           tokenIds[0],
           tokenSupplies[0],
           NULL_ADDRESS
-        )).to.emit('TransferSingle');
+        )).to.emit(projectContract, 'TransferSingle').withArgs(
+          owner.address,
+          NULL_ADDRESS,
+          owner.address,
+          tokenIds[0],
+          tokenSupplies[0]
+        );
 
         // Batch mnint remaining TokenIds.
         await expect(projectContract.connect(guest).mintBatch(
@@ -93,12 +99,18 @@ describe('ERC-1155 contract deployment', function () {
           NULL_ADDRESS
         )).to.be.reverted;
 
-        expect(await projectContract.mintBatch(
+        await expect(projectContract.mintBatch(
           owner.address,
           tokenIds.slice(1),
           tokenSupplies.slice(1),
           NULL_ADDRESS
-        )).to.emit('TransferBatch');
+        )).to.emit(projectContract, 'TransferBatch').withArgs(
+          owner.address,
+          NULL_ADDRESS,
+          owner.address,
+          tokenIds.slice(1),
+          tokenSupplies.slice(1)
+        );
 
         // Attempt to mint more after initial mint.
         await expect(projectContract.mint(
@@ -111,7 +123,7 @@ describe('ERC-1155 contract deployment', function () {
       });
 
       /** TOKEN URI (METADATA) WRITE TESTS*/
-      it('Only owner should be able to set metadata URIs, once and only once per tokenId', async function () {
+      it('5. Only owner should be able to set metadata URIs, once and only once per tokenId', async function () {
         
         // Set URI for tokenId 0.
         await expect(projectContract.connect(guest).setTokenURI(
@@ -119,16 +131,16 @@ describe('ERC-1155 contract deployment', function () {
           tokenURIs[0],
         )).to.be.reverted;
 
-        expect(await projectContract.setTokenURI(
+        await expect(projectContract.setTokenURI(
           tokenIds[0],
           tokenURIs[0],
-        )).to.emit('PermanentURI');
+        )).to.emit(projectContract, 'PermanentURI').withArgs(tokenURIs[0], tokenIds[0]);
 
         // Batch set URI for remaining TokenIds.
-        expect(await projectContract.setTokenURIBatch(
+        await expect(projectContract.setTokenURIBatch(
           tokenIds.slice(1),
           tokenURIs.slice(1)
-        )).to.emit('PermanentURI');
+        )).to.emit(projectContract, 'PermanentURI').withArgs(tokenURIs[1], tokenIds[1]);
 
         // Attempt to set URI for a TokenId with URI already set.
         await expect(projectContract.setTokenURI(
@@ -139,7 +151,7 @@ describe('ERC-1155 contract deployment', function () {
       });
 
       /** TOKEN URI (METADATA) READ TESTS*/
-      it('A tokenId\'s URI should return an IPFS path, which should return a metadata JSON file', async function () {
+      it('6. A tokenId\'s URI should return an IPFS path, which should return a metadata JSON file', async function () {
 
         // Read Metadata from contract and fetch from pinned IPFS (via Pinata).
         let tokenIpfsUri = await projectContract.uri(tokenIds[0]);
@@ -150,15 +162,15 @@ describe('ERC-1155 contract deployment', function () {
 
           // Fetch data from IPFS URI.
           let tokenUriResponse = await fetch(tokenHtmlUri);
-          // Serialize JSON from response and check for required fields.
+          // Serialize data from a successful response to a JSON object.
           let tokenMetadata = await tokenUriResponse.json();
 
-          // Check that the json metadata contains the required keys.
+          // Check that the JSON metadata contains the required keys.
           expect(tokenMetadata).to.include.keys(...testData.metadataKeys);
 
         } catch (err) {
 
-          // If any error is thrown, the test is failed.
+          // If any error is thrown in getting a response, the test fails.
           expect.fail('Token URI could not be fetched from IPFS:', err);
 
         };
@@ -166,7 +178,7 @@ describe('ERC-1155 contract deployment', function () {
       });
 
       /** TOKEN BALANCE & TRANSFER TESTS*/
-      it('Tokens should be minted to the owner\'s address and be transferable', async function () {
+      it('7. Tokens should be minted to the owner\'s address and be transferable', async function () {
         
         // Check token balances of owner and guest account post-mint.
         let ownerBalances = await projectContract.balanceOfBatch(
@@ -184,12 +196,19 @@ describe('ERC-1155 contract deployment', function () {
         expect(guestBalances.every((x) => x == 0)).to.be.true;
 
         // Transfer one NFT of tokenId 0 from owner to guest.
-        await projectContract.safeTransferFrom(
+        let amountSingle = 1;
+        await expect(projectContract.safeTransferFrom(
           owner.address,
           guest.address,
           tokenIds[0],
-          1,
+          amountSingle,
           NULL_ADDRESS
+        )).to.emit(projectContract, 'TransferSingle').withArgs(
+          owner.address,
+          owner.address,
+          guest.address,
+          tokenIds[0],
+          amountSingle
         );
 
         ownerBalances[0] = await projectContract.balanceOf(owner.address, tokenIds[0]);
@@ -201,12 +220,19 @@ describe('ERC-1155 contract deployment', function () {
         expect(guestBalances[0]).to.equal(1);
 
         // Batch transfer one NFT of each other tokenId from owner to guest.
-        await projectContract.safeBatchTransferFrom(
+        let amountBatch = Array(tokenIds.slice(1).length).fill(1);
+        await expect(projectContract.safeBatchTransferFrom(
           owner.address,
           guest.address,
           tokenIds.slice(1),
-          Array(tokenIds.slice(1).length).fill(1),
+          amountBatch,
           NULL_ADDRESS
+        )).to.emit(projectContract, 'TransferBatch').withArgs(
+          owner.address,
+          owner.address,
+          guest.address,
+          tokenIds.slice(1),
+          amountBatch
         );
         guestBalances = await projectContract.balanceOfBatch(
           Array(tokenIds.length).fill(guest.address),
@@ -218,16 +244,15 @@ describe('ERC-1155 contract deployment', function () {
 
       });
 
-
       /** CONTRACT PAUSE TESTS*/
-      it('The contract owner should be able to pause transactions temporarily, if needed', async function () {
+      it('8. The contract owner should be able to pause transactions temporarily, if needed', async function () {
 
         // Initial paused state should be false.
         expect(await projectContract.paused()).to.be.false;
 
-        // Pause the contract
+        // Pause the contract.
         await expect(projectContract.connect(guest).pause()).to.be.reverted;
-        expect(await projectContract.pause()).to.emit('Paused');;
+        await expect(projectContract.pause()).to.emit(projectContract, 'Paused').withArgs(owner.address);
 
         // Ensure that transactions are paused for all.
         await expect(projectContract.connect(guest).safeTransferFrom(
@@ -246,14 +271,14 @@ describe('ERC-1155 contract deployment', function () {
           NULL_ADDRESS
         )).to.be.reverted;
 
-        // Unpause the contract
+        // Unpause the contract.
         await expect(projectContract.connect(guest).unpause()).to.be.reverted;
-        expect(await projectContract.unpause()).to.emit('Unpaused');;
+        await expect(projectContract.unpause()).to.emit(projectContract, 'Unpaused').withArgs(owner.address);
         
       });
 
       /** TOKEN BURN TESTS*/
-      it('Tokens should be burnable by the token owner', async function () {
+      it('9. Tokens should be burnable by the token owner', async function () {
 
         // Check token balances of guest account.
         let guestBalances = await projectContract.balanceOfBatch(
@@ -262,7 +287,7 @@ describe('ERC-1155 contract deployment', function () {
         );
         guestBalances = guestBalances.map((x) => x.toNumber());
 
-        // Attempt to burn another owner's token(s).
+        // Attempt to burn another token owner's NFT(s).
         await expect(projectContract.burn(
           guest.address,
           tokenIds[0],
@@ -275,18 +300,30 @@ describe('ERC-1155 contract deployment', function () {
           guestBalances.slice(1)
         )).to.be.reverted;
 
-        // Burn guest's token(s).
-        expect(await projectContract.connect(guest).burn(
+        // Burn all guest's NFT(s).
+        await expect(projectContract.connect(guest).burn(
           guest.address,
           tokenIds[0],
           guestBalances[0]
-        )).to.emit('TransferSingle');
+        )).to.emit(projectContract, 'TransferSingle').withArgs(
+          guest.address,
+          guest.address,
+          NULL_ADDRESS,
+          tokenIds[0],
+          guestBalances[0]
+        );
 
-        expect(await projectContract.connect(guest).burnBatch(
+        await expect(projectContract.connect(guest).burnBatch(
           guest.address,
           tokenIds.slice(1),
           guestBalances.slice(1)
-        )).to.emit('TransferBatch');
+        )).to.emit(projectContract, 'TransferBatch').withArgs(
+          guest.address,
+          guest.address,
+          NULL_ADDRESS,
+          tokenIds.slice(1),
+          guestBalances.slice(1)
+        );
 
         // Ensure all guest's token(s) were burned.
         guestBalances = await projectContract.balanceOfBatch(
@@ -299,44 +336,82 @@ describe('ERC-1155 contract deployment', function () {
       });
 
       /** OPERATOR APPROVAL TESTS*/
-      it(`Approval should be compatible with designated operator (only OpenSea).
-      Approved operator should be revokable by the owner, if required`,
+      it(`10. Approval operator overrides should be registered in _operatorOverrides (only OpenSea).
+      Unless registed in _operatorOverrides, approved operator(s) should be revokable by the token owner, if required.`,
       async function () {
 
         const openSeaProxyAddress = '0x207Fa8Df3a17D96Ca7EA4f2893fcdCb78a304101';
         
-        // Check approval of unapproved address as operator (including owner of the contract, obviously).
+        // Check approval of unapproved address as operator (includes owner of the contract).
         expect(await projectContract.isApprovedForAll(guest.address, owner.address)).to.be.false;
 
-        // Check approval of OpenSeaa Proxy address as operator for all addresses.
-        let isApprovedForAll = await projectContract.isApprovedForAll(guest.address, openSeaProxyAddress);
-        expect(isApprovedForAll).to.be.true;
-        isApprovedForAll = await projectContract.isApprovedForAll(owner.address, openSeaProxyAddress);
-        expect(isApprovedForAll).to.be.true;
+        // Check approval of OpenSea Proxy address as operator override for all addresses.
+        let isApprovedForGuest = await projectContract.isApprovedForAll(guest.address, openSeaProxyAddress);
+        expect(isApprovedForGuest).to.be.true;
+        let isApprovedForOwner = await projectContract.isApprovedForAll(owner.address, openSeaProxyAddress);
+        expect(isApprovedForOwner).to.be.true;
 
         // Revoke approval of OpenSea operator for all addresses.
         // This should only be able to be done by the contract owner.
-        await expect(projectContract.connect(guest).setApprovalForAll(
+        await expect(projectContract.connect(guest).setOperatorOverride(
           openSeaProxyAddress,
           false
         )).to.be.reverted;
         
-        expect(await projectContract.setApprovalForAll(
+        await expect(projectContract.setOperatorOverride(
           openSeaProxyAddress,
           false
-        )).to.emit('ApprovalForAll');
+        )).to.emit(projectContract, 'ApprovalForAll').withArgs(
+          NULL_ADDRESS,
+          openSeaProxyAddress,
+          false
+        );
 
-        isApprovedForAll = await projectContract.isApprovedForAll(guest.address, openSeaProxyAddress);
-        expect(isApprovedForAll).to.be.false;
+        isApprovedForGuest = await projectContract.isApprovedForAll(guest.address, openSeaProxyAddress);
+        expect(isApprovedForGuest).to.be.false;
+
+        // setApprovalForAll() should only set approval for the operator for the caller's account.
+        await expect(projectContract.setApprovalForAll(
+          openSeaProxyAddress,
+          true
+        )).to.emit(projectContract, 'ApprovalForAll').withArgs(
+          owner.address,
+          openSeaProxyAddress,
+          true
+        );
+
+        isApprovedForGuest = await projectContract.isApprovedForAll(guest.address, openSeaProxyAddress);
+        expect(isApprovedForGuest).to.be.false;
+        await expect(projectContract.setApprovalForAll(
+          openSeaProxyAddress,
+          false
+        )).to.emit(projectContract, 'ApprovalForAll').withArgs(
+          owner.address,
+          openSeaProxyAddress,
+          false
+        );
+
+        // Re-enable approval of OpenSea operator for all addresses.
+        await expect(projectContract.setOperatorOverride(
+          openSeaProxyAddress,
+          true
+        )).to.emit(projectContract, 'ApprovalForAll').withArgs(
+          NULL_ADDRESS,
+          openSeaProxyAddress,
+          true
+        );
+
+        isApprovedForGuest = await projectContract.isApprovedForAll(guest.address, openSeaProxyAddress);
+        expect(isApprovedForGuest).to.be.true;
 
       });
 
       /** ROYALTY TESTS*/
-      it(`The initial royalty fraction value should match what was set in the coinstructor (default: 0%).
+      it(`11. The initial royalty fraction value should match what was set in the coinstructor (default: 0%).
       By default, the contract owner should be the receiver of all royalties and have authority to edit the royalty fraction value.`,
       async function () {
 
-        // Check that the initial royalty info (_defaultRoyaltyInfo for all tokenIds) was set correctly.
+        // Check that the initial/default royalty info is set correctly.
         let feeDenominator = await projectContract.feeDenominator();
         let royaltyFraction = ROYALTY_FRACTION; // 0 bips = 0%
         let [royaltyReceiver, royaltyAmount] = await projectContract.royaltyInfo(0, 1000000);
@@ -349,13 +424,28 @@ describe('ERC-1155 contract deployment', function () {
 
         // Set the default royalty to 5%.
         royaltyFraction = 500; // 500 bips = 5%
-        await projectContract.setDefaultRoyalty(royaltyFraction);
+        await expect(projectContract.setDefaultRoyalty(
+          royaltyFraction
+        )).to.emit(projectContract, 'DefaultRoyaltyUpdated').withArgs(
+          owner.address,
+          royaltyFraction
+        );
+
         [royaltyReceiver, royaltyAmount] = await projectContract.royaltyInfo(tokenIds[0], ONE_ETH);
         expect(ethers.utils.formatEther(royaltyAmount) * feeDenominator).to.equal(royaltyFraction);
 
-        // Set the royalty for a specific token ID (overriding the global default).
+        // Set the royalty for a specific token ID (overrides the default royalty).
         let newRoyaltyFraction = 1000;
-        await projectContract.setTokenRoyalty(tokenIds[0], guest.address, newRoyaltyFraction);
+        await expect(projectContract.setTokenRoyalty(
+          tokenIds[0],
+          guest.address,
+          newRoyaltyFraction
+        )).to.emit(projectContract, 'TokenRoyaltyUpdated').withArgs(
+          tokenIds[0],
+          guest.address,
+          newRoyaltyFraction
+        );
+
         let [newRoyaltyReceiver, newRoyaltyAmount] = await projectContract.royaltyInfo(tokenIds[0], ONE_ETH);
         expect(newRoyaltyReceiver).to.not.equal(royaltyReceiver);
         expect(ethers.utils.formatEther(newRoyaltyAmount) * feeDenominator).to.not.equal(royaltyFraction);
