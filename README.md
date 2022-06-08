@@ -1,5 +1,11 @@
 # **ERC-1155 NFT Project Template for Polygon**, by [Mas](https://github.com/Masangri/)
 
+## A sample deployment of this project can be referenced in the following links:
+- [Verified contract on Polygonscan (Mumbai Testnet)](https://mumbai.polygonscan.com/address/0x41f459c8149A04Da83Ad9530F92986783Ef1b73A#code)
+- [Collection listed on OpenSea (Mumbai Testnet)](https://testnets.opensea.io/collection/blender-frens-v2)
+- [Github repository](https://github.com/Masangri/erc-1155-nft-project-template-for-polygon)
+<br/><br/>
+
 ## Supported Token Standards:
 - [**ERC-165**](https://eips.ethereum.org/EIPS/eip-165)   Standard Interface Detection
 - [**ERC-1155**](https://eips.ethereum.org/EIPS/eip-1155)  Multi Token Standard
@@ -124,12 +130,12 @@
    - [ ] Double-check that all your settings are functioning as required on testnet on Polygonscan and OpenSea before proceeding.<br/>
          Make any necessary updates to environment variables for the mainnet contract, such as private key values.
          
-   - **Method 1** - VSCode & Hardhat (easier but arguably less secure):<br/>
+   - **Method 1** - VSCode & Hardhat - *easier but arguably less secure*:<br/>
      Deploy using the same method as *Step 10*, except on mainnet instead of testnet.
      - [ ] Deploy the contract using the deploy.js script to the **Polygon** network.
        - `yarn hardhat run scripts/deploy.js `**`--network polygon`**<br/><br/>
 
-   - **Method 2** - VSCode, Hardhat, and Remix IDE/Remixd Plug-In (extra setup and steps, but transactions require approval via secure wallet):<br/>
+   - **Method 2** - VSCode, Hardhat, Remix IDE/Remixd Plug-In, and Injected Web3 (i.e. Metamask) - *extra setup, but reployment requires explicit, secure approval*:<br/>
      Deploy by connecting Hardhat to the Remix IDE, which features wallet support for contreact deployment.
      - [ ] Start the Remixd daemon by running `yarn remixd -u https://remix.ethereum.org`.
      - [ ] Go to [remix.ethereum.org](https://remix.ethereum.org/) and click ***Connect to Localhost***.
@@ -151,7 +157,7 @@
    - Once deployed successfully, verify your contract and get it listed on OpenSea just like we did on testnet, but with the following adjustments noted in **bold**.<br/>
      - [ ] Verify the contract on Polygonscan on the **Polygon** mainnet.
        - `yarn hardhat verify --constructor-args arguments.js `**`--network polygon`**` <CONTRACT_ADDRESS>`
-     - [ ] Use [Polygonscan](https://polygonscan.com) on mainnet and search for your contract,
+       - Use [Polygonscan](https://polygonscan.com) on mainnet and search for your contract,
        or go directly to `https://`**`polygonscan.com`**`/address/<CONTRACT_ADDRESS>`.
      - [ ] Go to [OpenSea's Get Listed page](https://opensea.io/get-listed) and select the ***Live on a mainnet*** option and select ***Polygon***.
 
