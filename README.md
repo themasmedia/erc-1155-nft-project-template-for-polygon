@@ -2,7 +2,7 @@
 
 ## A sample deployment of this project can be referenced in the following links:
 - [Verified contract on Polygonscan (Mumbai Testnet)](https://mumbai.polygonscan.com/address/0x41f459c8149A04Da83Ad9530F92986783Ef1b73A#code)
-- [Collection listed on OpenSea (Mumbai Testnet)](https://testnets.opensea.io/collection/blender-frens-v2)
+- [Collection listed on OpenSea (Mumbai Testnet)](https://testnets.opensea.io/collection/blender-frens)
 - [Github repository](https://github.com/Masangri/erc-1155-nft-project-template-for-polygon)
 <br/><br/>
 
