@@ -4,25 +4,26 @@
 - [Verified contract on Polygonscan (Mumbai Testnet)](https://mumbai.polygonscan.com/address/0x41f459c8149A04Da83Ad9530F92986783Ef1b73A#code)
 - [Collection listed on OpenSea (Mumbai Testnet)](https://testnets.opensea.io/collection/blender-frens)
 - [Github repository](https://github.com/Masangri/erc-1155-nft-project-template-for-polygon)
-<br/><br/>
+<br/>
+
+## Marketplace Features:
+- **Gasless transactions** on [**Polygon**](https://polygon.technology/) (via [*meta-transactions*](https://docs.opensea.io/docs/polygon-basic-integration))
+- Compatable with [**Opensea**'s ERC-1155 metadata standards](https://docs.opensea.io/docs/metadata-standards)
+  (uri() function differs slightly from the ERC-1155 standard).
+
+## Featured Extensions:
+- Tokens are **Burnable** by their repspective owners (both individually and by batch).
+- Transactions on the contract are **Pausable** by the contract owner, if needed.
+- **Supply** and **Metadata URI** are set unqiuely and **permanently** per token ID by the contract owner.<br/>
+  This is to allowe editions for new token IDs to be minted in the future, free of the psuedo folder-like ERC1155.url/{tokenId} restriction<br/>
+  (useful for metadata on decentralized storage where maintaining a folder/file structure is difficult).
+- Marketplace support for universal **Royalty** standards (ERC-2981).<br/>
+  Royalties can be set uniquely per token ID, or default to the royalty info set in the contract *constructor*.
 
 ## Supported Token Standards:
 - [**ERC-165**](https://eips.ethereum.org/EIPS/eip-165)   Standard Interface Detection
 - [**ERC-1155**](https://eips.ethereum.org/EIPS/eip-1155)  Multi Token Standard
 - [**ERC-2981**](https://eips.ethereum.org/EIPS/eip-2981)  NFT Royalty Standard
-
-## Features & Extensions:
-- Tokens are **Burnable** by their repspective owners (both individually and by batch).
-- Transactions on the contract are **Pausable** by the contract owner, if needed.
-- **Supply** and **Metadata URI** are set unqiuely and permanently per token ID by the contract owner.<br/>
-  This is to alloweditions for new token IDs to be minted in the future, free of the ERC1155.url/{tokenId} restriction<br/>
-  (useful for metadata on decentralized storage where maintaining a folder/file structure is difficult).
-- Marketplace support for universal **Royalty** standards (ERC-2981).
-
-## Third-Party Support:
-- Gasless transactions on [**Polygon**](https://polygon.technology/) (via [*meta-transactions*](https://docs.opensea.io/docs/polygon-basic-integration))
-- Compatable with [**Opensea**'s ERC-1155 metadata standards](https://docs.opensea.io/docs/metadata-standards)
-  (uri() function differs slightly from the ERC-1155 standard).
 
 ## Instructions:
 
@@ -83,10 +84,10 @@
 1. ### Edit the following file names and hard-coded values in `contracts/`:
    - [ ] Rename `ERC1155TestProject.sol` to the same value set for `<PROJECT_NAME>` in **Step 5** above.
    - [ ] In the newly renamed `<PROJECT_NAME>.sol` contract, change the following:
-     - On lines 20 and 122, replace `ERC1155TestProject` with `<PROJECT_NAME>`
-     - If you uploaded contract-level storefront metadata in **Step 6**, edit line 71 to return the URI string to your contract-level metadata
+     - On line 20, replace `ERC1155TestProject` with `<PROJECT_NAME>`
+     - If you uploaded contract-level storefront metadata in **Step 6**, edit line 73 to return the URI string to your contract-level metadata
        (see contractURI() in the [Technical Notes](#technical-notes) [Contract](#contract) section).
-     - If not, you can comment out or remove the contractURI() function altogether (lines 61-73).
+     - If not, you can comment out or remove the contractURI() function altogether (lines 63-74).
 <br/><br/>
 
 1. ### Fund your Polygon account(s):
