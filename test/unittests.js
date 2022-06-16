@@ -407,16 +407,16 @@ describe('ERC-1155 contract deployment', function () {
       });
 
       /** ROYALTY TESTS*/
-      it(`11. The initial royalty fraction value should match what was set in the coinstructor (default: 0%).
+      it(`11. The initial royalty fraction value should match what was set in the constructor (default: 0%).
       By default, the contract owner should be the receiver of all royalties and have authority to edit the royalty fraction value.`,
       async function () {
 
         // Check that the initial/default royalty info is set correctly.
         let feeDenominator = await projectContract.feeDenominator();
-        let royaltyFraction = ROYALTY_FRACTION; // 0 bips = 0%
-        let [royaltyReceiver, royaltyAmount] = await projectContract.royaltyInfo(0, 1000000);
+        let royaltyFraction = Number(ROYALTY_FRACTION); // 0 bips = 0%
+        let [royaltyReceiver, royaltyAmount] = await projectContract.royaltyInfo(tokenIds[0], ONE_ETH);
         expect(royaltyReceiver).to.equal(owner.address);
-        expect(ethers.utils.formatEther(royaltyAmount * feeDenominator)).to.equal(ethers.utils.formatEther(royaltyFraction));
+        expect(ethers.utils.formatEther(royaltyAmount) * feeDenominator).to.equal(royaltyFraction);
 
         // Attempt to set the royalty to an illegally high value.
         royaltyFraction = 100000; // 10000 bips = 100%

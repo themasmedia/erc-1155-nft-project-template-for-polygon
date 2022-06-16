@@ -85,8 +85,9 @@
    - [ ] Rename `ERC1155TestProject.sol` to the same value set for `<PROJECT_NAME>` in **Step 5** above.
    - [ ] In the newly renamed `<PROJECT_NAME>.sol` contract, change the following:
      - On line 20, replace `ERC1155TestProject` with `<PROJECT_NAME>`
-     - If you uploaded contract-level storefront metadata in **Step 6**, edit line 73 to return the URI string to your contract-level metadata
-       (see contractURI() in the [Technical Notes](#technical-notes) [Contract](#contract) section).
+     - If you uploaded contract-level storefront metadata in **Step 6** (see contractURI() in the [Technical Notes](#technical-notes) [Contract](#contract) section):
+       - Edit line 73 to return the URI string to your contract-level metadata.
+       - In `test/data.json`, edit the value on line 2 to match the same URI string.
      - If not, you can comment out or remove the contractURI() function altogether (lines 63-74).
 <br/><br/>
 
