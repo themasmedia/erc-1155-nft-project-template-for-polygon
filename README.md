@@ -87,8 +87,10 @@
      - On line 20, replace `ERC1155TestProject` with `<PROJECT_NAME>`
      - If you uploaded contract-level storefront metadata in **Step 6** (see contractURI() in the [Technical Notes](#technical-notes) [Contract](#contract) section):
        - Edit line 73 to return the URI string to your contract-level metadata.
-       - In `test/data.json`, edit the value on line 2 to match the same URI string.
-     - If not, you can comment out or remove the contractURI() function altogether (lines 63-74).
+       - If you didn't utilize this feature, you can comment out or remove the contractURI() function altogether (lines 63-74).
+   - [ ] Optional: Update the `test/data.json` file with your own metadata content uploaded in **Step 6**:
+       - Edit the value on line 2 to match the URI string to your contract-level metadata.
+       - Replace the object(s) inside `tokenData` with your own metadata (including each object's `supply` and `tokenURI` values).
 <br/><br/>
 
 1. ### Fund your Polygon account(s):
