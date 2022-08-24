@@ -335,79 +335,8 @@ describe('ERC-1155 contract deployment', function () {
         
       });
 
-      /** OPERATOR APPROVAL TESTS*/
-      it(`10. Approval operator overrides should be registered in _operatorOverrides (only OpenSea).
-      Unless registed in _operatorOverrides, approved operator(s) should be revokable by the token owner, if required.`,
-      async function () {
-
-        const openSeaProxyAddress = '0x207Fa8Df3a17D96Ca7EA4f2893fcdCb78a304101';
-        
-        // Check approval of unapproved address as operator (includes owner of the contract).
-        expect(await projectContract.isApprovedForAll(guest.address, owner.address)).to.be.false;
-
-        // Check approval of OpenSea Proxy address as operator override for all addresses.
-        let isApprovedForGuest = await projectContract.isApprovedForAll(guest.address, openSeaProxyAddress);
-        expect(isApprovedForGuest).to.be.true;
-        let isApprovedForOwner = await projectContract.isApprovedForAll(owner.address, openSeaProxyAddress);
-        expect(isApprovedForOwner).to.be.true;
-
-        // Revoke approval of OpenSea operator for all addresses.
-        // This should only be able to be done by the contract owner.
-        await expect(projectContract.connect(guest).setOperatorOverride(
-          openSeaProxyAddress,
-          false
-        )).to.be.reverted;
-        
-        await expect(projectContract.setOperatorOverride(
-          openSeaProxyAddress,
-          false
-        )).to.emit(projectContract, 'ApprovalForAll').withArgs(
-          NULL_ADDRESS,
-          openSeaProxyAddress,
-          false
-        );
-
-        isApprovedForGuest = await projectContract.isApprovedForAll(guest.address, openSeaProxyAddress);
-        expect(isApprovedForGuest).to.be.false;
-
-        // setApprovalForAll() should only set approval for the operator for the caller's account.
-        await expect(projectContract.setApprovalForAll(
-          openSeaProxyAddress,
-          true
-        )).to.emit(projectContract, 'ApprovalForAll').withArgs(
-          owner.address,
-          openSeaProxyAddress,
-          true
-        );
-
-        isApprovedForGuest = await projectContract.isApprovedForAll(guest.address, openSeaProxyAddress);
-        expect(isApprovedForGuest).to.be.false;
-        await expect(projectContract.setApprovalForAll(
-          openSeaProxyAddress,
-          false
-        )).to.emit(projectContract, 'ApprovalForAll').withArgs(
-          owner.address,
-          openSeaProxyAddress,
-          false
-        );
-
-        // Re-enable approval of OpenSea operator for all addresses.
-        await expect(projectContract.setOperatorOverride(
-          openSeaProxyAddress,
-          true
-        )).to.emit(projectContract, 'ApprovalForAll').withArgs(
-          NULL_ADDRESS,
-          openSeaProxyAddress,
-          true
-        );
-
-        isApprovedForGuest = await projectContract.isApprovedForAll(guest.address, openSeaProxyAddress);
-        expect(isApprovedForGuest).to.be.true;
-
-      });
-
       /** ROYALTY TESTS*/
-      it(`11. The initial royalty fraction value should match what was set in the constructor (default: 0%).
+      it(`10. The initial royalty fraction value should match what was set in the constructor (default: 0%).
       By default, the contract owner should be the receiver of all royalties and have authority to edit the royalty fraction value.`,
       async function () {
 

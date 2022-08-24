@@ -32,7 +32,9 @@
    - [ ] [nodeJS/npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
    - [ ] [yarn](https://classic.yarnpkg.com/lang/en/docs/install)
      (optional; you can also just use `npm`/`npx` if you prefer, but all steaps below will be using `yarn`)
-   - [ ] [VSCode](https://code.visualstudio.com/) (optional, but recommended for the extensions)
+   - [ ] [nvm](https://npm.github.io/installation-setup-docs/installing/using-a-node-version-manager.html)
+     (optional; Managing your version of `nodeJS` for each project is a good practice)
+   - [ ] [VSCode](https://code.visualstudio.com/) (optional; recommended for the extensions)
    - [ ] [Metamask](https://metamask.io/) (or similar wallet pletform, preferably with hardware wallet support, for connecting to dApps)
 <br/><br/>
 
@@ -40,6 +42,14 @@
    ```
    git clone https://github.com/Masangri/erc-1155-nft-project-template-for-polygon.git
    cd erc-1155-nft-project-template-for-polygon
+   yarn install
+   ```
+   If you are using `nvm` or another Node version manager, be sure to activate it before installing the package. For example:
+   ```
+   git clone https://github.com/Masangri/erc-1155-nft-project-template-for-polygon.git
+   cd erc-1155-nft-project-template-for-polygon
+   nvm install --lts
+   nvm use --lts
    yarn install
    ```
 
