@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/token/common/ERC2981.sol";
 
 import "./custom/ERC1155Base.sol";
 import "./utils/ContextMixin.sol";
+import "./utils/NativeMetaTransaction.sol";
 
 // import "hardhat/console.sol";
 
@@ -17,7 +18,7 @@ import "./utils/ContextMixin.sol";
  * @dev
  * ERC1155 implementation for NFT editions with royalties on Polygon.
  */
-contract ERC1155TestProject is ERC1155Base, ERC2981, ContextMixin {
+contract ERC1155TestProject is ERC1155Base, ERC2981, ContextMixin, NativeMetaTransaction {
 
     /** 
      * @dev

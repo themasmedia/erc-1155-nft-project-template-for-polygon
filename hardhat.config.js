@@ -25,7 +25,15 @@ if (!RPC_MAINNET_URL && !RPC_TESTNET_URL) {
 
 module.exports = {
   defaultNetwork: 'hardhat',
-  solidity: '0.8.4',
+  solidity: {
+    version: "0.8.4",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200 
+      }
+    }
+  },
   etherscan: {
     apiKey: {
       polygon: process.env.POLYGONSCAN_API_KEY,
